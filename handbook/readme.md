@@ -196,6 +196,37 @@ flinkcdc：
 
 
 
+## DWD
+侧输出流
+
+
+
+kafka操作 
+
+```shell
+./bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --create  --replication-factor 1 --partitions 1 --topic  dwd_start_log
+
+
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092  --topic ods_base_db
+
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092  --topic ods_base_db
+
+
+```
+
+
+```json
+{"common":{"ar":"110000","ba":"iPhone","ch":"Appstore","is_new":"1","md":"iPhone X","mid":"mid_8","os":"iOS 13.2.3","uid":"27","vc":"v2.1.134"},"start":{"entry":"icon","loading_time":5151,"open_ad_id":11,"open_ad_ms":6184,"open_ad_skip_ms":5848},"ts":1638203457000}
+
+
+{"common":{"ar":"310000","ba":"Xiaomi","ch":"xiaomi","is_new":"0","md":"Xiaomi 9","mid":"mid_11","os":"Android 8.1","uid":"40","vc":"v2.1.134"},"page":{"during_time":5195,"last_page_id":"good_detail","page_id":"cart"},"ts":1638203459000}
+
+
+{"actions":[{"action_id":"trade_add_address","ts":1638203464133}],"common":{"ar":"310000","ba":"Xiaomi","ch":"xiaomi","is_new":"0","md":"Xiaomi 9","mid":"mid_11","os":"Android 8.1","uid":"40","vc":"v2.1.134"},"page":{"during_time":10267,"item":"1,2,9","item_type":"sku_ids","last_page_id":"cart","page_id":"trade"},"ts":1638203459000}
+
+
+{"common":{"ar":"440000","ba":"iPhone","ch":"Appstore","is_new":"0","md":"iPhone X","mid":"mid_9","os":"iOS 13.3.1","uid":"41","vc":"v2.1.134"},"displays":[{"display_type":"activity","item":"2","item_type":"activity_id","order":1,"pos_id":2},{"display_type":"query","item":"3","item_type":"sku_id","order":2,"pos_id":2},{"display_type":"recommend","item":"9","item_type":"sku_id","order":3,"pos_id":2}],"page":{"during_time":1044,"page_id":"home"},"ts":1638203458000}
+```
 
 
 

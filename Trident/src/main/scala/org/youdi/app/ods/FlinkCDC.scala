@@ -44,7 +44,7 @@ object FlinkCDC {
 
     val ds: DataStream[String] = env.addSource(sourceFunction)
 
-    ds.print()
+//    ds.print()
 
     // 数据写入kafka中
     ds.addSink(KafkaUtils.getKafkaProducer("ods_base_db"))
