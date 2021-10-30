@@ -1,4 +1,4 @@
-package com.youdi
+package com.youdi.cdc
 
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode

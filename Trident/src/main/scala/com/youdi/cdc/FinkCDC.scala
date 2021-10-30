@@ -1,12 +1,11 @@
-package com.youdi
+package com.youdi.cdc
 
 import com.alibaba.ververica.cdc.connectors.mysql.MySQLSource
 import com.alibaba.ververica.cdc.connectors.mysql.table.StartupOptions
-import com.alibaba.ververica.cdc.debezium.{DebeziumSourceFunction, StringDebeziumDeserializationSchema}
+import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.scala._
+import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 
 
 object FinkCDC {

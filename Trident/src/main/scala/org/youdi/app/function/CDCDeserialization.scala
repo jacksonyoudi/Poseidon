@@ -1,4 +1,4 @@
-package com.youdi
+package org.youdi.app.function
 
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.ververica.cdc.debezium.DebeziumDeserializationSchema
@@ -9,7 +9,6 @@ import org.apache.kafka.connect.data.{Field, Schema, Struct}
 import org.apache.kafka.connect.source.SourceRecord
 
 import scala.collection.JavaConverters._
-import java.util
 import scala.language.postfixOps
 
 
