@@ -230,9 +230,45 @@ kafka操作
 
 
 
+## 动态分流
+
+维度表：
+hbase:  数据量扩展大， 请求的并发， 一致性
+redis:  
+mysql： 并发压力大
 
 
 
+配置：
+1. 使用zk, 通过watch感知数据变化
+2. 使用mysql， 周期性同步
+3. 用mysql保存，使用广播流
+
+
+
+## 配置表
+table_process字段
+
+sourceTable type sinktype sink(表名和主题) sinkColumns pk  extend
+order_info  insert  kafka   dwd_xxa       
+
+
+```sql
+
+
+
+```
+
+广播流：
+   1. 解析数据 string => table_process
+   2. 检查hbase表是否存在并建表
+   3. 写入状态
+
+主流：
+   1. 读取状态
+   2. 过滤数据
+   3. 分流
+   
 
 
 

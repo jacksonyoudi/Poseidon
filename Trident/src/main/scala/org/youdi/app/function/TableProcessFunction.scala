@@ -1,14 +1,15 @@
 package org.youdi.app.function
 
 import com.alibaba.fastjson.{JSON, JSONObject}
-import org.apache.flink.api.common.state.{BroadcastState, MapStateDescriptor}
+import org.apache.flink.api.common.state.{BroadcastState, MapStateDescriptor, ReadOnlyBroadcastState}
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction
 import org.apache.flink.streaming.api.scala.OutputTag
 import org.apache.flink.util.Collector
 import org.youdi.bean.TableProcess
 import org.youdi.common.TridentConfig
-import java.sql.{Connection, DriverManager}
+
+import java.sql.{Connection, DriverManager, PreparedStatement, SQLException}
 
 class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor[String, TableProcess]) extends BroadcastProcessFunction[JSONObject, String, JSONObject] {
   var connection: Connection = _
@@ -21,47 +22,105 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
     connection = DriverManager.getConnection(TridentConfig.PHOENIX_SERVER)
   }
 
-  override def processElement(value: JSONObject, ctx: BroadcastProcessFunction[JSONObject, String, JSONObject]#ReadOnlyContext, out: Collector[JSONObject]): Unit = {
+  private def filterColumn(data: JSONObject, sinkColumns: String): Unit = {
+    val colums: Set[String] = sinkColumns.split(",").toSet
 
+    //    val iterator: util.Iterator[Map.Entry[String, AnyRef]] = data.entrySet().iterator()
+
+    //    while (iterator.hasNext) {
+    //      val next: Map.Entry[String, AnyRef] = iterator.next()
+    //      if (!colums.contains(next.getKey)) {
+    //        iterator.remove()
+    //      }
+    //    }
+
+    data.entrySet().removeIf(next => !colums.contains(next.getKey()));
+
+  }
+
+  override def processElement(value: JSONObject, ctx: BroadcastProcessFunction[JSONObject, String, JSONObject]#ReadOnlyContext, out: Collector[JSONObject]): Unit = {
+    // 获取广播流
+    val rbs: ReadOnlyBroadcastState[String, TableProcess] = ctx.getBroadcastState(stateDesc)
+    val key: String = value.getString("tableName") + "-" + value.getString("type")
+
+    val process: TableProcess = rbs.get(key)
+    if (process != null) {
+      val data: JSONObject = value.getJSONObject("after")
+      filterColumn(data, process.sinkColumns)
+
+      // 分流
+      if (process.sinkType.equals(TableProcess.SINK_TYPE_KaFKA)) {
+
+
+        out.collect(value)
+      } else if (process.sinkType.equals(TableProcess.SINK_TYPE_HBASE)) {
+
+
+        ctx.output(streamTag, value)
+      }
+
+
+    } else {
+      println(key + " no exits")
+    }
 
   }
 
   // 建表语句  create table if not exists db.tn(id varchar primary key, kk varchar )xxx;
   private def checkTable(sinkTable: String, sinkColumns: String, sinkPkS: String, sinkExtend: String) = {
-    var sinkPk: String = sinkPkS
+    var statement: PreparedStatement = _
+    try {
+      var sinkPk: String = sinkPkS
 
-    if (sinkPk == null) {
-      sinkPk = "id"
-    }
-
-
-    val bf: StringBuffer = new StringBuffer("create table if not exists")
-      .append(TridentConfig.Hbase_SCHEMA)
-      .append(".")
-      .append(sinkTable)
-      .append("(")
-
-    val strings: Array[String] = sinkColumns.split(",")
-
-    for ((field, index) <- strings.zipWithIndex) {
-
-      // 判断是否是主键
-      if (field.equals(sinkPk)) {
-        bf.append(field).append(" varchar primary key")
-      } else {
-        bf.append(field).append(" varchar")
+      if (sinkPk == null) {
+        sinkPk = "id"
       }
 
-      // 判断是否是最后一个字段
-      if (index < strings.length - 1) {
-        bf.append(",")
+
+      val bf: StringBuffer = new StringBuffer("create table if not exists")
+        .append(TridentConfig.Hbase_SCHEMA)
+        .append(".")
+        .append(sinkTable)
+        .append("(")
+
+      val strings: Array[String] = sinkColumns.split(",")
+
+      for ((field, index) <- strings.zipWithIndex) {
+
+        // 判断是否是主键
+        if (field.equals(sinkPk)) {
+          bf.append(field).append(" varchar primary key")
+        } else {
+          bf.append(field).append(" varchar")
+        }
+
+        // 判断是否是最后一个字段
+        if (index < strings.length - 1) {
+          bf.append(",")
+        }
+      }
+      bf.append(") ")
+
+      if (sinkExtend != null) {
+        bf.append(sinkExtend)
+      }
+
+      println(bf.toString)
+
+
+      statement = connection.prepareStatement(bf.toString)
+      statement.execute()
+
+    } catch {
+      case e: SQLException => {
+        throw new RuntimeException("phoenix " + sinkTable + " 建表失败! ")
+      }
+    } finally {
+      if (statement != null) {
+        statement.close()
       }
     }
-    bf.append(") ")
 
-    if (sinkExtend != null) {
-      bf.append(sinkExtend)
-    }
 
   }
 
@@ -72,7 +131,7 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
 
     // 建表
     if (tableprocess.sinkType.equals(TableProcess.SINK_TYPE_HBASE)) {
-      checkTable(tableprocess.sinkTable, tableprocess.sinkColumn, tableprocess.sinkPk, tableprocess.sinkExtend)
+      checkTable(tableprocess.sinkTable, tableprocess.sinkColumns, tableprocess.sinkPk, tableprocess.sinkExtend)
     }
 
     // 写入状态，广播出去

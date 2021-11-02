@@ -66,17 +66,16 @@ object BaseDBApp {
 
     // 分流 处理数据
     val hbaseTag: OutputTag[JSONObject] = new OutputTag[JSONObject]("hbase-tag")
-    resultDS.process(new TableProcessFunction(hbaseTag, braodcastState))
+    val kafkaDS: DataStream[JSONObject] = resultDS.process(new TableProcessFunction(hbaseTag, braodcastState))
 
 
-    // 提取kafka流数据和hbase流数据
-
-
+    val hbaseDS: DataStream[JSONObject] = kafkaDS.getSideOutput(hbaseTag)
     // 提取kafka
+    kafkaDS.print("kafka>>>")
+    hbaseDS.print("hbase>>>")
 
 
-    // 将kafka数据写入到kafka主题中
-
+    env.execute("baseDBapp")
 
   }
 }

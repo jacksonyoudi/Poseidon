@@ -5,7 +5,7 @@ case class TableProcess(
                          operationType: String,
                          sinkType: String,
                          sinkTable: String,
-                         sinkColumn: String,
+                         sinkColumns: String,
                          sinkPk: String,
                          sinkExtend: String
                        )
