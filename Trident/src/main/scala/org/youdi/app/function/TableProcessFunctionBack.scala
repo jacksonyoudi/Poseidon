@@ -6,37 +6,22 @@ import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction
 import org.apache.flink.streaming.api.scala.OutputTag
 import org.apache.flink.util.Collector
-import org.apache.hadoop.conf
-import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.youdi.bean.{TableProcess, TableProcessConfig}
 import org.youdi.common.TridentConfig
-import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.util.Bytes
 
-import java.io.IOException
+import java.sql.{Connection, DriverManager, PreparedStatement, SQLException}
 
 
-class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor[String, TableProcess]) extends BroadcastProcessFunction[JSONObject, String, JSONObject] {
+@deprecated
+class TableProcessFunctionBack(tag: OutputTag[JSONObject], state: MapStateDescriptor[String, TableProcess]) extends BroadcastProcessFunction[JSONObject, String, JSONObject] {
   var connection: Connection = _
   var streamTag: OutputTag[JSONObject] = tag
   var stateDesc: MapStateDescriptor[String, TableProcess] = state
 
 
   override def open(parameters: Configuration): Unit = {
-    val configuration: conf.Configuration = HBaseConfiguration.create()
-
-    configuration.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
-    configuration.set(HConstants.ZOOKEEPER_QUORUM, "localhost")
-    configuration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, "/hbase")
-
-    println("connect starting....")
-    try {
-      connection = ConnectionFactory.createConnection(configuration)
-    } catch {
-      case e: IOException =>
-        e.printStackTrace()
-    }
-    println("connect completed")
+    Class.forName(TridentConfig.PHOENIX_DRIVER)
+    connection = DriverManager.getConnection(TridentConfig.PHOENIX_SERVER)
   }
 
   private def filterColumn(data: JSONObject, sinkColumns: String): Unit = {
@@ -85,8 +70,7 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
 
   // 建表语句  create table if not exists db.tn(id varchar primary key, kk varchar )xxx;
   private def checkTable(sinkTable: String, sinkColumns: String, sinkPkS: String, sinkExtend: String) = {
-    var admin: Admin = connection.getAdmin
-
+    var statement: PreparedStatement = null
     try {
       var sinkPk: String = sinkPkS
 
@@ -125,28 +109,18 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
 
       println(bf.toString)
 
-      print(sinkTable)
 
-      if (admin.tableExists(TableName.valueOf(sinkTable))) {
-        println(sinkTable + " is exist!")
-      } else {
-        val tableBuilder: TableDescriptorBuilder = TableDescriptorBuilder.newBuilder(TableName.valueOf(sinkTable))
-        strings.toList.foreach {
-          columnFamily: String => {
-            val cfDesc: ColumnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(columnFamily))
-            cfDesc.setMaxVersions(1)
-            val build: ColumnFamilyDescriptor = cfDesc.build
-            tableBuilder.setColumnFamily(build)
-          }
-        }
-        admin.createTable(tableBuilder.build)
-      }
+      statement = connection.prepareStatement(bf.toString)
+      statement.execute()
 
     } catch {
-      case e: Exception =>
-        e.printStackTrace()
+      case e: SQLException => {
+        throw new RuntimeException("phoenix " + sinkTable + " 建表失败! ")
+      }
     } finally {
-      admin.close()
+      if (statement != null) {
+        statement.close()
+      }
     }
 
 
@@ -155,8 +129,7 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
   override def processBroadcastElement(value: String, ctx: BroadcastProcessFunction[JSONObject, String, JSONObject]#Context, out: Collector[JSONObject]): Unit = {
     val js: JSONObject = JSON.parseObject(value)
     val data: String = js.getString("after")
-    println(data)
-    val tableprocess: TableProcess = JSON.parseObject(data, TableProcess().getClass)
+    val tableprocess: TableProcess = JSON.parseObject(data, TableProcess.getClass)
 
     // 建表
     print("table........")

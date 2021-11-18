@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flink.version>1.12.0</flink.version>
-        <hbase.version>2.4.0</hbase.version>
+        <hbase.version>2.4.6</hbase.version>
         <scala.binary.version>2.12</scala.binary.version>
         <scala.version>2.12.12</scala.version>
         <log4j.version>2.12.1</log4j.version>
@@ -128,6 +128,19 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
         </dependency>
 
         <dependency>

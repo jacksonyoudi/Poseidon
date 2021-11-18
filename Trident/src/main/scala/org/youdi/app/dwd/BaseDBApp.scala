@@ -55,7 +55,7 @@ object BaseDBApp {
       .username("root")
       .password("root")
       .databaseList("bigdata")
-      //  .tableList()
+//        .tableList("table_process")
       .deserializer(new CDCDeserialization)
       .startupOptions(StartupOptions.initial())
       .build()
