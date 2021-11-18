@@ -68,7 +68,7 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
 
   // 建表语句  create table if not exists db.tn(id varchar primary key, kk varchar )xxx;
   private def checkTable(sinkTable: String, sinkColumns: String, sinkPkS: String, sinkExtend: String) = {
-    var statement: PreparedStatement = _
+    var statement: PreparedStatement = null
     try {
       var sinkPk: String = sinkPkS
 
@@ -130,6 +130,7 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
     val tableprocess: TableProcess = JSON.parseObject(data, TableProcess.getClass)
 
     // 建表
+    print("table........")
     if (tableprocess.sinkType.equals(TableProcess.SINK_TYPE_HBASE)) {
       checkTable(tableprocess.sinkTable, tableprocess.sinkColumns, tableprocess.sinkPk, tableprocess.sinkExtend)
     }

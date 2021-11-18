@@ -17,6 +17,8 @@ class CDCDeserialization extends DebeziumDeserializationSchema[String] {
     // 创建json对象
     val result: JSONObject = new JSONObject()
 
+    print(sourceRecord.toString)
+
     // 获取库名和表名
     val topic: String = sourceRecord.topic
     val strings: Array[String] = topic.split("\\.")

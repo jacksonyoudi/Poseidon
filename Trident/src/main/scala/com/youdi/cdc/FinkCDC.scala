@@ -6,6 +6,7 @@ import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
+import org.youdi.utils.KafkaUtils
 
 
 object FinkCDC {
@@ -16,13 +17,13 @@ object FinkCDC {
 
     // 开启checkpointing
 
-    env.setStateBackend(new RocksDBStateBackend("file:///opt/module/applog/gmall2020/backend/"))
+//    env.setStateBackend(new RocksDBStateBackend("file:///opt/module/applog/gmall2020/backend/"))
 
-    env.enableCheckpointing(5000)
-    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
-    env.getCheckpointConfig.setCheckpointTimeout(10000L)
-    env.getCheckpointConfig.setMaxConcurrentCheckpoints(2)
-    env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000)
+//    env.enableCheckpointing(5000)
+//    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+//    env.getCheckpointConfig.setCheckpointTimeout(10000L)
+//    env.getCheckpointConfig.setMaxConcurrentCheckpoints(2)
+//    env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000)
 
     // 重启策略
 
@@ -41,8 +42,8 @@ object FinkCDC {
       .build()
 
     val ds: DataStream[String] = env.addSource(sourceFunction)
-    ds.print()
 
+    ds.addSink(KafkaUtils.getKafkaProducer("ods_base_db"))
 
     env.execute("flink-cdc")
   }
