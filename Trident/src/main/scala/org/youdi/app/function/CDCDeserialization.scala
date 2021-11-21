@@ -24,7 +24,7 @@ class CDCDeserialization extends DebeziumDeserializationSchema[String] {
     val strings: Array[String] = topic.split("\\.")
 
 
-    val (database, table): (String, String) = (strings(0), strings(1))
+    val (database, table): (String, String) = (strings(1), strings(2))
 
     val value: Struct = sourceRecord.value().asInstanceOf[Struct]
     // 获取 before数据
@@ -57,7 +57,7 @@ class CDCDeserialization extends DebeziumDeserializationSchema[String] {
     val operation: Envelope.Operation = Envelope.operationFor(sourceRecord)
     var typ: String = operation.toString.toLowerCase
 
-    if (typ != "create") {
+    if (typ == "create") {
       typ = "insert"
     }
 

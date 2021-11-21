@@ -58,24 +58,26 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
   override def processElement(value: JSONObject, ctx: BroadcastProcessFunction[JSONObject, String, JSONObject]#ReadOnlyContext, out: Collector[JSONObject]): Unit = {
     // 获取广播流
     val rbs: ReadOnlyBroadcastState[String, TableProcess] = ctx.getBroadcastState(stateDesc)
-    val key: String = value.getString("tableName") + "-" + value.getString("type")
+
+    println("elemet:", value.toJSONString)
+
+    val key: String = value.getString("table") + "-" + value.getString("type")
 
     val process: TableProcess = rbs.get(key)
     if (process != null) {
       val data: JSONObject = value.getJSONObject("after")
       filterColumn(data, process.sinkColumns)
 
+      value.put("sinkTable", process.sinkTable)
       // 分流
-      if (process.sinkType.equals(TableProcessConfig.SINK_TYPE_KaFKA)) {
-
+      if (process.sinkType.equals(TableProcessConfig.SINK_TYPE_KAFKA)) {
 
         out.collect(value)
       } else if (process.sinkType.equals(TableProcessConfig.SINK_TYPE_HBASE)) {
-
-
+        // 写入侧输出流
+        value.put("rowkey", process.sinkPk)
         ctx.output(streamTag, value)
       }
-
 
     } else {
       println(key + " no exits")
@@ -125,23 +127,29 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
 
       println(bf.toString)
 
-      print(sinkTable)
-
+      println("check table")
       if (admin.tableExists(TableName.valueOf(sinkTable))) {
         println(sinkTable + " is exist!")
       } else {
+        println("create table")
         val tableBuilder: TableDescriptorBuilder = TableDescriptorBuilder.newBuilder(TableName.valueOf(sinkTable))
-        strings.toList.foreach {
-          columnFamily: String => {
-            val cfDesc: ColumnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(columnFamily))
-            cfDesc.setMaxVersions(1)
-            val build: ColumnFamilyDescriptor = cfDesc.build
-            tableBuilder.setColumnFamily(build)
-          }
-        }
+        //        strings.toList.foreach {
+        //          columnFamily: String => {
+        //            val cfDesc: ColumnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(columnFamily))
+        //            cfDesc.setMaxVersions(1)
+        //            val build: ColumnFamilyDescriptor = cfDesc.build
+        //            tableBuilder.setColumnFamily(build)
+        //          }
+        //        }
+
+        // 只创建一个 family
+        val cfDesc: ColumnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes("a"))
+        cfDesc.setMaxVersions(1)
+        val build: ColumnFamilyDescriptor = cfDesc.build
+        tableBuilder.setColumnFamily(build)
+
         admin.createTable(tableBuilder.build)
       }
-
     } catch {
       case e: Exception =>
         e.printStackTrace()
@@ -159,14 +167,13 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
     val tableprocess: TableProcess = JSON.parseObject(data, TableProcess().getClass)
 
     // 建表
-    print("table........")
     if (tableprocess.sinkType.equals(TableProcessConfig.SINK_TYPE_HBASE)) {
       checkTable(tableprocess.sinkTable, tableprocess.sinkColumns, tableprocess.sinkPk, tableprocess.sinkExtend)
     }
 
     // 写入状态，广播出去
     val broadCast: BroadcastState[String, TableProcess] = ctx.getBroadcastState(stateDesc)
-    val key: String = tableprocess.sourceTable + "-" + tableprocess.operationType
+    val key: String = tableprocess.sourceTable + "-" + tableprocess.operateType
 
     broadCast.put(key, tableprocess)
 

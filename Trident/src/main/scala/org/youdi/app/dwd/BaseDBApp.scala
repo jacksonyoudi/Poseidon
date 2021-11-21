@@ -8,11 +8,14 @@ import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.streaming.api.datastream.BroadcastStream
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-import org.youdi.app.function.TableProcessFunction
+import org.youdi.app.function.{DimSinkFunction, TableProcessFunction}
 import org.youdi.bean.TableProcess
 import org.youdi.utils.KafkaUtils
 import com.youdi.cdc.CDCDeserialization
+import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema
+import org.apache.kafka.clients.producer.ProducerRecord
 
+import java.lang
 import java.util.Properties
 
 
@@ -41,9 +44,12 @@ object BaseDBApp {
       .map(JSON.parseObject(_))
       .filter(_.getString("type") != "delete")
 
+    dbDS.print("dbods>>>>>>")
+
 
     val properties: Properties = new Properties()
     properties.put("allowPublicKeyRetrieval", "true")
+    properties.put("useSSL", "false")
 
 
     // 广播流
@@ -55,7 +61,7 @@ object BaseDBApp {
       .username("root")
       .password("root")
       .databaseList("bigdata")
-//        .tableList("table_process")
+      //        .tableList("table_process")
       .deserializer(new CDCDeserialization)
       .startupOptions(StartupOptions.initial())
       .build()
@@ -83,6 +89,19 @@ object BaseDBApp {
     // 提取kafka
     kafkaDS.print("kafka>>>")
     hbaseDS.print("hbase>>>")
+
+    // 写到 hbase中
+    hbaseDS.addSink(new DimSinkFunction())
+
+    val byte: Byte = "aaa".toByte
+
+    // 控制反转
+    kafkaDS.addSink(KafkaUtils.getKafkaProducer(new KafkaSerializationSchema[JSONObject]() {
+      override def serialize(element: JSONObject, timestamp: lang.Long) = {
+
+        new ProducerRecord(element.getString("sinkTable"), element.getString("after").getBytes())
+      }
+    }))
 
 
     env.execute("baseDBapp")

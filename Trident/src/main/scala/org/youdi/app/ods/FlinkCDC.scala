@@ -18,13 +18,13 @@ object FlinkCDC {
 
     // 开启checkpointing
 
-    env.setStateBackend(new RocksDBStateBackend("file:///opt/module/applog/gmall2020/cdcbackend/"))
+//    env.setStateBackend(new RocksDBStateBackend("file:///opt/module/applog/gmall2020/cdcbackend/"))
 
-    env.enableCheckpointing(5000)
-    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
-    env.getCheckpointConfig.setCheckpointTimeout(10000L)
-    env.getCheckpointConfig.setMaxConcurrentCheckpoints(2)
-    env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000)
+//    env.enableCheckpointing(5000)
+//    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+//    env.getCheckpointConfig.setCheckpointTimeout(10000L)
+//    env.getCheckpointConfig.setMaxConcurrentCheckpoints(2)
+//    env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000)
 
     // 重启策略
 

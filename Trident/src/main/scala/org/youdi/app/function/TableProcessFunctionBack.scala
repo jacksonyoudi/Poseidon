@@ -51,9 +51,7 @@ class TableProcessFunctionBack(tag: OutputTag[JSONObject], state: MapStateDescri
       filterColumn(data, process.sinkColumns)
 
       // 分流
-      if (process.sinkType.equals(TableProcessConfig.SINK_TYPE_KaFKA)) {
-
-
+      if (process.sinkType.equals(TableProcessConfig.SINK_TYPE_KAFKA)) {
         out.collect(value)
       } else if (process.sinkType.equals(TableProcessConfig.SINK_TYPE_HBASE)) {
 
@@ -139,7 +137,7 @@ class TableProcessFunctionBack(tag: OutputTag[JSONObject], state: MapStateDescri
 
     // 写入状态，广播出去
     val broadCast: BroadcastState[String, TableProcess] = ctx.getBroadcastState(stateDesc)
-    val key: String = tableprocess.sourceTable + "-" + tableprocess.operationType
+    val key: String = tableprocess.sourceTable + "-" + tableprocess.operateType
 
     broadCast.put(key, tableprocess)
 
