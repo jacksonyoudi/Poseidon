@@ -9,6 +9,8 @@ import java.sql.{Connection, DriverManager, PreparedStatement}
 import java.util
 import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
 
+
+@deprecated
 class DimSinkFunctionPhoenix extends RichSinkFunction[JSONObject] {
   var connection: Connection = _
 

@@ -59,7 +59,6 @@ class TableProcessFunction(tag: OutputTag[JSONObject], state: MapStateDescriptor
     // 获取广播流
     val rbs: ReadOnlyBroadcastState[String, TableProcess] = ctx.getBroadcastState(stateDesc)
 
-    println("elemet:", value.toJSONString)
 
     val key: String = value.getString("table") + "-" + value.getString("type")
 

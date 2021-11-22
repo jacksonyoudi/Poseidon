@@ -44,7 +44,6 @@ object BaseDBApp {
       .map(JSON.parseObject(_))
       .filter(_.getString("type") != "delete")
 
-    dbDS.print("dbods>>>>>>")
 
 
     val properties: Properties = new Properties()
@@ -82,18 +81,13 @@ object BaseDBApp {
     val hbaseTag: OutputTag[JSONObject] = new OutputTag[JSONObject]("hbase-tag")
     val kafkaDS: DataStream[JSONObject] = resultDS.process(new TableProcessFunction(hbaseTag, braodcastState))
 
-    print("starting................")
 
 
     val hbaseDS: DataStream[JSONObject] = kafkaDS.getSideOutput(hbaseTag)
     // 提取kafka
     kafkaDS.print("kafka>>>")
-    hbaseDS.print("hbase>>>")
-
     // 写到 hbase中
     hbaseDS.addSink(new DimSinkFunction())
-
-    val byte: Byte = "aaa".toByte
 
     // 控制反转
     kafkaDS.addSink(KafkaUtils.getKafkaProducer(new KafkaSerializationSchema[JSONObject]() {

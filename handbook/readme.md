@@ -268,6 +268,32 @@ order_info  insert  kafka   dwd_xxa
    1. 读取状态
    2. 过滤数据
    3. 分流
+
+
+
+### ODS和DWD-DIM总结
+ODS:
+   数据源： 行为数据， 业务数据
+   架构分析：
+      flinkCDC: sql, datastream
+            maxwell,cancel
+   保持数据原貌，不做任何修改
+   ods_base_log, ods_base_db
+
+DWD-DIM:
+   行为数据:DWD(KAFKA)
+         1. 过滤脏数据， -->  侧输出流， 脏数据率
+         2. 新老用户校验  --> 前台校验不准
+         3. 分流  ---> 侧输出流  页面，启动，曝光，动作， 错误
+         4. 写入kafka
+
+   业务数据: DWD(kAFKA) -DIM(HBASE)
+         1. 过滤数据 --> 删除数据
+
+
+
+
+
    
 
 
