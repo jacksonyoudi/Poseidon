@@ -289,6 +289,22 @@ DWD-DIM:
 
    业务数据: DWD(kAFKA) -DIM(HBASE)
          1. 过滤数据 --> 删除数据
+         2. 读取配置表创建广播流
+         3. 连接主流和广播流并处理
+               广播流数据
+                  a. 解析数据 
+                  b. phoenix建表
+                  c. 写入状态广播
+               主流数据
+                  a. 读取状态
+                  b. 过滤字段
+                  c. 分流(添加sinkTable)
+         4. 提取kafka和hbase流分别对应的位置
+         5. hbase流， 自定义sink
+         6. kafka流, 自定义序列化器 IOC 
+
+
+
 
 
 
