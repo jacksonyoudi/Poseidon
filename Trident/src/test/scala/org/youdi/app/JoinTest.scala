@@ -1,9 +1,11 @@
 package org.youdi.app
 
-import org.apache.flink.api.common.eventtime.TimestampAssignerSupplier.SupplierFromSerializableTimestampAssigner
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
+import org.apache.flink.api.common.time.Time
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator
+import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
 import org.youdi.bean.{One, Two}
 
 
@@ -43,10 +45,19 @@ object JoinTest {
       )
     )
 
-    oneDS.keyBy(
-      o => o.id
-    )
 
+
+    oneDS.keyBy(o => o.id).intervalJoin(
+        twoDS.keyBy( o => o.id)
+      )
+      .between(Time.seconds(-5), Time.seconds(5))
+      .upperBoundExclusive()
+      .lowerBoundExclusive()
+      .process(
+        new ProcessJoinFunction[One, Two, [One, Two]]() {
+                  
+    }
+      )
     // 双流jion
 
 
