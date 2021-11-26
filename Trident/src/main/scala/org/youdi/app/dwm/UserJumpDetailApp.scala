@@ -67,6 +67,17 @@ object UserJumpDetailApp {
         Time.seconds(10)
       )
 
+    // 使用循环模式
+//    Pattern.begin[JSONObject]("start").where(new SimpleCondition[JSONObject] {
+//      override def filter(value: JSONObject) = {
+//        val lastPageId: String = value.getJSONObject("page").getString("last_page_id")
+//        lastPageId == null || lastPageId.length <= 0
+//      }
+//    }).times(2)
+//      .consecutive() //指定严格近邻居 next
+//      .within(Time.seconds(10))
+
+
     // 5. 将模式序列作用到流上
     val patternStream: PatternStream[JSONObject] = CEP.pattern(jsonobjDS.keyBy(_.getJSONObject("common").getString("mid")), pattern)
 
