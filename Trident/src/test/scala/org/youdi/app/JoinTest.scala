@@ -1,11 +1,13 @@
 package org.youdi.app
 
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
-import org.apache.flink.api.common.time.Time
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
+import org.apache.flink.util.Collector
 import org.youdi.bean.{One, Two}
 
 
@@ -45,24 +47,39 @@ object JoinTest {
       )
     )
 
-
-
-    oneDS.keyBy(o => o.id).intervalJoin(
-        twoDS.keyBy( o => o.id)
-      )
-      .between(Time.seconds(-5), Time.seconds(5))
-      .upperBoundExclusive()
+    val joinDS: SingleOutputStreamOperator[(One, Two)] = oneDS.keyBy(new KeySelector[One, String]() {
+      override def getKey(value: One): String = {
+        value.id
+      }
+    }).intervalJoin(
+      twoDS.keyBy(new KeySelector[Two, String]() {
+        override def getKey(value: Two) = {
+          value.id
+        }
+      })
+    ).between(Time.seconds(-5),
+      Time.seconds(5)
+    )
       .lowerBoundExclusive()
+      .upperBoundExclusive()
       .process(
-        new ProcessJoinFunction[One, Two, [One, Two]]() {
-                  
-    }
+        new ProcessJoinFunction[One, Two, Tuple2[One, Two]]() {
+          override def processElement(left: One, right: Two, ctx: ProcessJoinFunction[One, Two, Tuple2[One, Two]]#Context, out: Collector[Tuple2[One, Two]]): Unit = {
+            out.collect(
+              new Tuple2[One, Two](left, right)
+            )
+          }
+        }
       )
     // 双流jion
 
+    joinDS.print("join")
 
     // 打印
-
+    env.execute("start")
 
   }
 }
+
+
+
