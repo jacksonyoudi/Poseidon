@@ -1,17 +1,20 @@
 package org.youdi.bean
 
+
+import scala.beans.BeanProperty
+
 case class OrderInfo(
-                      id: Long,
-                      province_id: Long,
-                      order_status: String,
-                      total_amount: Double,
-                      activity_reduce_amount: Double,
-                      coupon_reduce_amount: Double,
-                      feight_fee: Double,
-                      expire_time: String,
-                      create_time: String,
-                      operate_time: String,
-                      create_date: String,
-                      create_hour: String,
-                      create_ts: Long
+                      @BeanProperty var id: Long,
+                      @BeanProperty var province_id: Long,
+                      @BeanProperty var order_status: String,
+                      @BeanProperty var total_amount: Double,
+                      @BeanProperty var activity_reduce_amount: Double,
+                      @BeanProperty var coupon_reduce_amount: Double,
+                      @BeanProperty var feight_fee: Double,
+                      @BeanProperty var expire_time: String,
+                      @BeanProperty var create_time: String,
+                      @BeanProperty var operate_time: String,
+                      @BeanProperty var create_date: String,
+                      @BeanProperty var create_hour: String,
+                      @BeanProperty var create_ts: Long
                     )
