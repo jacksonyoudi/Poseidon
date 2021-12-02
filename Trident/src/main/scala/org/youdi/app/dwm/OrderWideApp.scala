@@ -1,14 +1,17 @@
 package org.youdi.app.dwm
 
 import com.alibaba.fastjson.{JSON, JSONObject}
-import org.apache.flink.api.common.eventtime.TimestampAssignerSupplier.SupplierFromSerializableTimestampAssigner
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
+import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.youdi.utils.KafkaUtils
 import org.apache.flink.streaming.api.scala._
-import org.youdi.bean.{OrderDetail, OrderInfo}
+import org.apache.flink.util.Collector
+import org.youdi.bean.{OrderDetail, OrderInfo, OrderWide}
 
 import java.text.SimpleDateFormat
 
@@ -30,10 +33,14 @@ object OrderWideApp {
     //    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3))
 
     // 2. 读取kafka数据 3. 将每行数据转换成json对象
+
+
     val orderInfoScourceTopic: String = "dwd_order_info"
     val orderDetailScourceTopic: String = "dwd_order_detail"
     val orderWideSinkTopic: String = "dwm_order_wide"
     val groupid: String = "order_wide_group"
+
+    // 2. 读取kafka主题数据 并转换为 bean对象， 提取时间戳生成watermark
     val orderInfoDS: DataStream[OrderInfo] = env
       .addSource(KafkaUtils.getKafkaConsumer(orderInfoScourceTopic, groupid))
       .map(line => {
@@ -79,14 +86,32 @@ object OrderWideApp {
           }
         )
     )
-    
-    // 2. 读取kafka主题数据 并转换为 bean对象， 提取时间戳生成watermark
-
-
     // 双流jion
-
+    val wideNoDimDS: DataStream[OrderWide] = orderInfoDS.keyBy(new KeySelector[OrderInfo, Long]() {
+      override def getKey(in: OrderInfo) = {
+        in.id
+      }
+    }).intervalJoin(
+      orderDetailDS.keyBy(new KeySelector[OrderDetail, Long]() {
+        override def getKey(in: OrderDetail) = {
+          in.order_id
+        }
+      })
+    ).between(Time.seconds(-5), Time.seconds(5)) // 生产环境中给的时间是最大延迟时间
+      .lowerBoundExclusive()
+      .upperBoundExclusive()
+      .process(
+        new ProcessJoinFunction[OrderInfo, OrderDetail, OrderWide]() {
+          override def processElement(in1: OrderInfo, in2: OrderDetail, context: ProcessJoinFunction[OrderInfo, OrderDetail, OrderWide]#Context, collector: Collector[OrderWide]) = {
+            collector.collect(new OrderWide(in1, in2))
+          }
+        }
+      )
 
     // 关联维度信息
+
+    
+
 
 
     // 数据写回kafka
