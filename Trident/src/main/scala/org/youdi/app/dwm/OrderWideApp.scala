@@ -102,15 +102,20 @@ object OrderWideApp {
       .upperBoundExclusive()
       .process(
         new ProcessJoinFunction[OrderInfo, OrderDetail, OrderWide]() {
-          override def processElement(in1: OrderInfo, in2: OrderDetail, context: ProcessJoinFunction[OrderInfo, OrderDetail, OrderWide]#Context, collector: Collector[OrderWide]) = {
+          override def processElement(in1: OrderInfo, in2: OrderDetail, context: ProcessJoinFunction[OrderInfo, OrderDetail, OrderWide]#Context, collector: Collector[OrderWide]): Unit = {
             collector.collect(new OrderWide(in1, in2))
           }
         }
       )
 
     // 关联维度信息
+    wideNoDimDS.map(entry => {
+      val user_id: Long = entry.user_id
+      // 通过hbase进行查询
 
-    
+      entry
+    })
+
 
 
 
