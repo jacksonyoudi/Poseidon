@@ -1,5 +1,6 @@
 package com.youdi.streamlet.sideout
 
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.scala._
@@ -9,6 +10,8 @@ object DTag {
   def main(args: Array[String]): Unit = {
     val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
     val DS: DataStream[String] = env.socketTextStream("localhost", 9999)
+
+    val info: TypeInformation[Long] = TypeInformation.of(classOf[Long])
 
     val ds: DataStream[Long] = DS.flatMap(_.split(" ")).map(_.toLong)
 
