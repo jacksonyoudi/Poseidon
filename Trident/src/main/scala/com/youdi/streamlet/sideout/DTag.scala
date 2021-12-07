@@ -11,6 +11,7 @@ object DTag {
     val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
     val DS: DataStream[String] = env.socketTextStream("localhost", 9999)
 
+
     val info: TypeInformation[Long] = TypeInformation.of(classOf[Long])
 
     val ds: DataStream[Long] = DS.flatMap(_.split(" ")).map(_.toLong)
