@@ -16,5 +16,13 @@ case class OrderInfo(
                       @BeanProperty var operate_time: String,
                       @BeanProperty var create_date: String,
                       @BeanProperty var create_hour: String,
-                      @BeanProperty var create_ts: Long
+                      @BeanProperty var create_ts: Long,
+
+                      @BeanProperty var province_name: String = null, //查询维表得到
+                      @BeanProperty var province_area_code: String = null,
+                      @BeanProperty var province_3166_2_code: String = null,
+                      @BeanProperty var province_iso_code: String = null,
+
+                      var user_age: Int = 0,
+                      var user_gender: String = null
                     )
