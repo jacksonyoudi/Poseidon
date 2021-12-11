@@ -7,6 +7,7 @@ import org.apache.hadoop.conf
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, Put, Table}
 import org.apache.hadoop.hbase.util.Bytes
+import org.youdi.utils.DimUtil
 
 import java.io.IOException
 
@@ -35,6 +36,11 @@ class DimSinkFunction extends RichSinkFunction[JSONObject] {
       val table: Table = connection.getTable(TableName.valueOf(value.getString("sinkTable")))
 
       val jSONObject: JSONObject = value.getJSONObject("after")
+
+      // 判断 如果是更新数据,就删除数据
+      if (value.getString("type").equals("update")) {
+        DimUtil.delRedisDimInfo(value.getString("sinkType"), jSONObject.getString("id"))
+      }
 
       val put: Put = new Put(Bytes.toBytes(jSONObject.getString(value.getString("rowkey"))))
       println(jSONObject.toString)

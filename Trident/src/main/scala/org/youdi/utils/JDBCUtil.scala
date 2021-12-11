@@ -44,6 +44,11 @@ object JDBCUtil {
   }
 
 
+
+
+
+
+
   def main(args: Array[String]): Unit = {
     Class.forName(TridentConfig.PHOENIX_DRIVER)
     val connection: Connection = DriverManager.getConnection(TridentConfig.PHOENIX_SERVER)

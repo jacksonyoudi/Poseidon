@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.sink.{RichSinkFunction, SinkFunction}
 import org.youdi.common.TridentConfig
+import org.youdi.utils.DimUtil
 
 import java.sql.{Connection, DriverManager, PreparedStatement}
 import java.util
@@ -39,6 +40,12 @@ class DimSinkFunctionPhoenix extends RichSinkFunction[JSONObject] {
   override def invoke(value: JSONObject, context: SinkFunction.Context): Unit = {
     // 获取 sql语句
     try {
+
+      // 判断 如果是更新数据,就删除数据
+      if (value.getString("type").equals("update")) {
+        DimUtil.delRedisDimInfo(value.getString("sinkType"), value.getJSONObject("after").getString("id"))
+      }
+
       var upsertSql: String = genUpsertSql(value.getString("sinkTable"), value.getJSONObject("after"))
       println(upsertSql)
 
