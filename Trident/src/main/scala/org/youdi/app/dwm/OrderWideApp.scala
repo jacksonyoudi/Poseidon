@@ -86,7 +86,6 @@ object OrderWideApp {
           }
         )
     )
-    // 双流jion
     val wideNoDimDS: DataStream[OrderWide] = orderInfoDS.keyBy(new KeySelector[OrderInfo, Long]() {
       override def getKey(in: OrderInfo) = {
         in.id
@@ -107,6 +106,7 @@ object OrderWideApp {
           }
         }
       )
+>>>>>>> c4494a8be5dcc009f04eea23205a4b26f6b3439b
 
     // 关联维度信息
     wideNoDimDS.map(entry => {
