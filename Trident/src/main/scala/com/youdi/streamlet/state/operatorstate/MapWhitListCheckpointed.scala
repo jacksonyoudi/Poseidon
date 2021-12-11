@@ -15,6 +15,7 @@ class MapWhitListCheckpointed[T] extends MapFunction[T, Tuple2[T, Long]] with Li
     Collections.singletonList(count)
   }
 
+  // 将数据
   override def restoreState(state: util.List[T]): Unit = {
     for (_ <- state.toArray) {
       count += 1
