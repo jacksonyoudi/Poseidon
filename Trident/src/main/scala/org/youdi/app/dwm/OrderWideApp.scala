@@ -86,13 +86,6 @@ object OrderWideApp {
           }
         )
     )
-<<<<<<< HEAD
-
-
-
-    // 2. 读取kafka主题数据 并转换为 bean对象， 提取时间戳生成watermark
-=======
-    // 双流jion
     val wideNoDimDS: DataStream[OrderWide] = orderInfoDS.keyBy(new KeySelector[OrderInfo, Long]() {
       override def getKey(in: OrderInfo) = {
         in.id
