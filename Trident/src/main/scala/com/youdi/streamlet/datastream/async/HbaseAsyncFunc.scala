@@ -1,4 +1,4 @@
-package com.youdi.streamlet.async
+package com.youdi.streamlet.datastream.async
 
 import org.apache.flink.streaming.api.scala.async.{AsyncFunction, ResultFuture}
 

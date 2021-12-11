@@ -1,11 +1,11 @@
-package com.youdi.streamlet.source
+package com.youdi.streamlet.datastream.source
+
+import java.util
 
 import org.apache.flink.api.common.state.{ListState, ListStateDescriptor}
 import org.apache.flink.runtime.state.{FunctionInitializationContext, FunctionSnapshotContext}
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction
-
-import java.util
 
 class ExampleSourceFunction extends SourceFunction[Long] with CheckpointedFunction {
   var count: Long = 0
