@@ -1,4 +1,4 @@
-package com.youdi.streamlet.state.keyedstate
+package com.youdi.streamlet.statecompute.state.keyedstate
 
 import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}

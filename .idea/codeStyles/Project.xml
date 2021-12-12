@@ -6,10 +6,9 @@
       <option name="TYPE_ANNOTATION_LOCAL_DEFINITION" value="true" />
       <option name="TYPE_ANNOTATION_FUNCTION_PARAMETER" value="true" />
       <option name="TYPE_ANNOTATION_UNDERSCORE_PARAMETER" value="true" />
+      <option name="TYPE_ANNOTATION_STRUCTURAL_TYPE" value="false" />
       <option name="TYPE_ANNOTATION_EXCLUDE_MEMBER_OF_ANONYMOUS_CLASS" value="true" />
       <option name="TYPE_ANNOTATION_EXCLUDE_MEMBER_OF_PRIVATE_CLASS" value="true" />
-      <option name="TYPE_ANNOTATION_EXCLUDE_WHEN_TYPE_IS_STABLE" value="false" />
-      <option name="TYPE_ANNOTATION_EXCLUDE_IN_TEST_SOURCES" value="true" />
     </ScalaCodeStyleSettings>
   </code_scheme>
 </component>

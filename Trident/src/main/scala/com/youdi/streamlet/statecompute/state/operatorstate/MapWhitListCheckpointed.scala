@@ -1,4 +1,4 @@
-package com.youdi.streamlet.state.operatorstate
+package com.youdi.streamlet.statecompute.state.operatorstate
 
 import org.apache.flink.api.common.functions.MapFunction
 import org.apache.flink.streaming.api.checkpoint.ListCheckpointed
@@ -10,12 +10,12 @@ class MapWhitListCheckpointed[T] extends MapFunction[T, Tuple2[T, Long]] with Li
   private var count: Long = _
 
 
-  // 将一个单值返回，会自动
+  // 将一个单值返回，会自动 将数据保存到state中
   override def snapshotState(checkpointId: Long, timestamp: Long): util.List[T] = {
     Collections.singletonList(count)
   }
 
-  // 将数据
+  // 恢复数据
   override def restoreState(state: util.List[T]): Unit = {
     for (_ <- state.toArray) {
       count += 1
