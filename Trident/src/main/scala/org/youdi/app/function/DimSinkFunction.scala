@@ -37,7 +37,7 @@ class DimSinkFunction extends RichSinkFunction[JSONObject] {
 
       val jSONObject: JSONObject = value.getJSONObject("after")
 
-      // 判断 如果是更新数据,就删除数据
+      // 判断 如果是更新数据,就删除数据 可以直接更新,注意过期时间
       if (value.getString("type").equals("update")) {
         DimUtil.delRedisDimInfo(value.getString("sinkType"), jSONObject.getString("id"))
       }
