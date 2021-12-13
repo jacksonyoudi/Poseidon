@@ -30,12 +30,9 @@ object DimUtil {
     val dimInfoJson: String = jedis.get(redisKey)
 
     if (dimInfoJson != null) {
-      jedis.close()
-
       // 重置过期时间
       jedis.expire(redisKey, 24 * 60 * 60L)
-
-
+      jedis.close()
       return JSON.parseObject(dimInfoJson)
     }
 

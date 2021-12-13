@@ -11,9 +11,11 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import org.youdi.utils.KafkaUtils
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
+import org.youdi.app.function.DimAsyncFucntion
 import org.youdi.bean.{OrderDetail, OrderInfo, OrderWide}
 
 import java.text.SimpleDateFormat
+import java.util.concurrent.TimeUnit
 
 object OrderWideApp {
   def main(args: Array[String]): Unit = {
@@ -108,12 +110,32 @@ object OrderWideApp {
       )
 
     // 关联维度信息
-    wideNoDimDS.map(entry => {
-      val user_id: Long = entry.user_id
-      // 通过hbase进行查询
 
-      entry
-    })
+    // 关联用户维度
+    val withUserDS: DataStream[OrderWide] = AsyncDataStream.unorderedWait(
+      wideNoDimDS,
+      new DimAsyncFucntion[OrderWide]("DIM_USER_INFO") {
+        override def getKey(input: OrderWide) = {
+          input.user_id.toString
+        }
+
+        override def join(intput: OrderWide, dimInfo: JSONObject): Unit = {
+          intput.user_gender = dimInfo.getString("GENDER")
+          val birthday: String = dimInfo.getString("BIRTHDAY")
+          val format: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+
+          val l: Long = System.currentTimeMillis()
+          val time: Long = format.parse(birthday).getTime
+
+          val age: Long = (time - l) / (1000 * 60 * 60 * 24 * 465L)
+          intput.user_age = age.toInt
+
+        }
+      },
+      60,
+      TimeUnit.SECONDS
+    )
+    
 
 
 
