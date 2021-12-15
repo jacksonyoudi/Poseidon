@@ -135,17 +135,103 @@ object OrderWideApp {
       60,
       TimeUnit.SECONDS
     )
-    
 
+
+    // 关联 地区维度
+    val withProvinceDS: DataStream[OrderWide] = AsyncDataStream.unorderedWait(
+      withUserDS,
+      new DimAsyncFucntion[OrderWide]("DIM_BASE_PROVINCE") {
+        override def getKey(input: OrderWide) = {
+          input.province_id.toString
+        }
+
+        override def join(intput: OrderWide, dimInfo: JSONObject): Unit = {
+          intput.province_name = dimInfo.getString("NAME")
+          intput.province_area_code = dimInfo.getString("AREA_CODE")
+          intput.province_iso_code = dimInfo.getString("ISO_CODE")
+          intput.province_3166_2_code = dimInfo.getString("ISO_3166_2")
+        }
+      },
+      60,
+      TimeUnit.SECONDS
+    )
+
+    // 关联 sku 维度
+    val withSKUDS: DataStream[OrderWide] = AsyncDataStream.unorderedWait(
+      withProvinceDS,
+      new DimAsyncFucntion[OrderWide]("DIM_SKU_INFO") {
+        override def getKey(input: OrderWide) = {
+          input.sku_id.toString
+        }
+
+        override def join(intput: OrderWide, dimInfo: JSONObject): Unit = {
+          intput.sku_name = dimInfo.getString("SKU_NAME")
+          intput.category3_id = dimInfo.getLong("CATEGORY3_ID")
+          intput.spu_id = dimInfo.getLong("SPU_ID")
+          intput.tm_id = dimInfo.getLong("TM_ID")
+        }
+      },
+      60,
+      TimeUnit.SECONDS
+    )
+
+    // 关联 spu维度
+    val withSPUDS: DataStream[OrderWide] = AsyncDataStream.unorderedWait(
+      withSKUDS,
+      new DimAsyncFucntion[OrderWide]("DIM_SPU_INFO") {
+        override def getKey(input: OrderWide) = {
+          input.spu_id.toString
+        }
+
+        override def join(intput: OrderWide, dimInfo: JSONObject): Unit = {
+          intput.spu_name = dimInfo.getString("SPU_NAME")
+        }
+      },
+      60,
+      TimeUnit.SECONDS
+    )
+
+    // 关联tm维度
+    val withTMDS: DataStream[OrderWide] = AsyncDataStream.unorderedWait(
+      withSPUDS,
+      new DimAsyncFucntion[OrderWide]("DIM_BASE_TRADEMARK") {
+        override def getKey(input: OrderWide) = {
+          input.tm_id.toString
+        }
+
+        override def join(intput: OrderWide, dimInfo: JSONObject): Unit = {
+          intput.tm_name = dimInfo.getString("TM_NAME")
+        }
+      },
+      60,
+      TimeUnit.SECONDS
+    )
+
+
+    // 关联 category维度
+    val resultDS: DataStream[OrderWide] = AsyncDataStream.unorderedWait(
+      withTMDS,
+      new DimAsyncFucntion[OrderWide]("DIM_BASE_CATEGORY3") {
+        override def getKey(input: OrderWide) = {
+          input.category3_id.toString
+        }
+
+        override def join(intput: OrderWide, dimInfo: JSONObject): Unit = {
+          intput.category3_name = dimInfo.getString("NAME")
+        }
+      },
+      60,
+      TimeUnit.SECONDS
+    )
 
 
 
     // 数据写回kafka
+    resultDS
+      .map(js => JSON.toJSONString(js))
+      .addSink(KafkaUtils.getKafkaProducer(orderWideSinkTopic))
 
-
-    //  开启任务
-
-
+    env.execute("order wide")
   }
 
 }

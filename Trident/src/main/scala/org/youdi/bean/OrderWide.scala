@@ -36,7 +36,14 @@ case class OrderWide(
 
 
                       var user_age: Int = 0,
-                      var user_gender: String = null
+                      var user_gender: String = null,
+
+                      var spu_id: Long = null,
+                      var tm_id: Long = null,
+                      var category3_id: Long = null,
+                      var spu_name: String = null,
+                      var tm_name: String = null,
+                      var category3_name: String = null,
                     ) {
   def this(orderInfo: OrderInfo, orderDetail: OrderDetail) {
     this
