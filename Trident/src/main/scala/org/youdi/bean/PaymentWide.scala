@@ -1,5 +1,9 @@
 package org.youdi.bean
 
+import org.apache.commons.beanutils.BeanUtils
+import java.lang.reflect.InvocationTargetException
+
+
 case class PaymentWide(
                         var payment_id: Long = 0L,
 
@@ -44,4 +48,38 @@ case class PaymentWide(
                         var spu_name: String = null,
                         var tm_name: String = null,
                         var category3_name: String = null
-                      )
+                      ) {
+
+  def this(paymentInfo: PaymentInfo, wide: OrderWide) {
+    this
+    mergePaymentInfo(paymentInfo)
+    mergeOrderWide(wide)
+  }
+
+  def mergePaymentInfo(paymentInfo: PaymentInfo): Unit = {
+    if (paymentInfo != null) try {
+      BeanUtils.copyProperties(this, paymentInfo)
+      payment_create_time = paymentInfo.create_time
+      payment_id = paymentInfo.id
+    } catch {
+      case e: IllegalAccessException =>
+        e.printStackTrace()
+      case e: InvocationTargetException =>
+        e.printStackTrace()
+    }
+  }
+
+
+  def mergeOrderWide(orderWide: OrderWide): Unit = {
+    if (orderWide != null) try {
+      BeanUtils.copyProperties(this, orderWide)
+      order_create_time = orderWide.create_time
+    } catch {
+      case e: IllegalAccessException =>
+        e.printStackTrace()
+      case e: InvocationTargetException =>
+        e.printStackTrace()
+    }
+  }
+}
+
