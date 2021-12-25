@@ -2,16 +2,21 @@ package org.youdi.app.dws
 
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkGenerator, WatermarkStrategy}
+import org.apache.flink.api.common.functions.ReduceFunction
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.streaming.api.scala.function.WindowFunction
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
+import org.apache.flink.util.Collector
 import org.youdi.bean.VisitorStats
-import org.youdi.utils.KafkaUtils
+import org.youdi.utils.{DateTimeUtil, KafkaUtils}
 
 import java.time.Duration
+import java.util.Date
 
 object VisitorStatsApp {
   def main(args: Array[String]): Unit = {
@@ -153,14 +158,44 @@ object VisitorStatsApp {
 
 
     // 7.开窗 聚合
-    keyStream.window(
+    val result: DataStream[VisitorStats] = keyStream.window(
       TumblingEventTimeWindows.of(Time.seconds(10))
-    ).apply(
-      
+    ).reduce(
+      new ReduceFunction[VisitorStats]() {
+        override def reduce(value1: VisitorStats, value2: VisitorStats) = {
+          // 如果是滑动窗口必须是new
+          value1.uv_ct = value1.uv_ct + value2.uv_ct
+          value1.pv_ct = value1.pv_ct + value2.pv_ct
+          value1.sv_ct = value1.sv_ct + value2.sv_ct
+          value1.uj_ct = value1.uj_ct + value2.uj_ct
+          value1.dur_sum = value1.dur_sum + value2.dur_sum
+
+          value1
+        }
+      },
+      new WindowFunction[VisitorStats, VisitorStats, Tuple4[String, String, String, String], TimeWindow]() {
+        override def apply(key: (String, String, String, String), window: TimeWindow, input: Iterable[VisitorStats], out: Collector[VisitorStats]): Unit = {
+          val start: Long = window.getStart
+          val end: Long = window.getEnd
+
+          val stats: VisitorStats = input.iterator.next()
+
+          //  补充窗口信息
+          stats.stt = DateTimeUtil.toYMDhms(new Date(start))
+          stats.edt = DateTimeUtil.toYMDhms(new Date(end))
+
+          out.collect(stats)
+
+        }
+      }
+
     )
 
-    
 
+    result.print(">>>")
+
+
+    env.execute("VisitorStatsApp")
 
   }
 }
