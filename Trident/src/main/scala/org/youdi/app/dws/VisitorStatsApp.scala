@@ -132,7 +132,7 @@ object VisitorStatsApp {
     // 5. 读取时间戳生成watermarker
     val statsDS: DataStream[VisitorStats] = ds.assignTimestampsAndWatermarks(
       WatermarkStrategy.forBoundedOutOfOrderness[VisitorStats](
-        Duration.ofSeconds(10)
+        Duration.ofSeconds(11)
       )
         .withTimestampAssigner(
           new SerializableTimestampAssigner[VisitorStats] {
