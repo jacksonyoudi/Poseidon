@@ -20,3 +20,10 @@ bin 字段
 idx 索引
 
 ### 主键
+
+
+
+
+## OLAP 
+
+rollup 
