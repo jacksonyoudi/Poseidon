@@ -22,7 +22,7 @@ case class VisitorStats(
                          //度量： 跳出次数
                          var uj_ct: Long = 0L,
                          //度量： 持续访问时间
-                         var dur_sum: Long = 0L,
+                         @TransientSink var dur_sum: Long = 0L,
                          //统计时间
                          var ts: Long = 0L
                        )

@@ -13,7 +13,7 @@ import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 import org.youdi.bean.VisitorStats
-import org.youdi.utils.{DateTimeUtil, KafkaUtils}
+import org.youdi.utils.{ClickHouseUtil, DateTimeUtil, KafkaUtils}
 
 import java.time.Duration
 import java.util.Date
@@ -192,7 +192,7 @@ object VisitorStatsApp {
     )
 
 
-    result.print(">>>")
+    result.addSink(ClickHouseUtil.getSink[VisitorStats]("insert into visitor_stats_tab values(?,?,?,?,?,?,?,?,?,?,?,?)"))
 
 
     env.execute("VisitorStatsApp")
