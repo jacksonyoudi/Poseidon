@@ -208,6 +208,12 @@
             <version>0.2.6</version>
         </dependency>
 
+        <!--lomback插件依赖-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-jdbc -->
         <dependency>
